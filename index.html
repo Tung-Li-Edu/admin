@@ -101,7 +101,7 @@ input:focus{border-color:var(--accent)}
 <script>
 /* ★ 部署後把「東立行政專區」Apps Script 的網址貼在這裡 ★ */
 const API = 'https://script.google.com/macros/s/AKfycbxX8f8imrca5hB61WuynJvPyCqcjWs9QLtFibfBYZDetVHoSRwLL-WfeH7C91YwEjg/exec';
-const SHELL_VERSION = 'v1121-1';
+const SHELL_VERSION = 'v1121-2';
 
 const K_TOK = 'tlx_tok', K_DATA = 'tlx_data', TUTOR = 'tutor:';
 const $ = id => document.getElementById(id);
@@ -179,7 +179,7 @@ function openApp(a){
   if (!f) {
     f = document.createElement('iframe');
     f.src = a.url;
-    f.setAttribute('allow', 'camera; microphone; clipboard-read; clipboard-write; fullscreen');
+    f.setAttribute('allow', 'camera; microphone; clipboard-read; clipboard-write; fullscreen; web-share');
     f.setAttribute('allowfullscreen', '');
     frames[a.url] = f;
     $('frames').appendChild(f);

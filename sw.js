@@ -1,5 +1,5 @@
 // 東立行政專區：只快取外殼本身；各系統內容一律走網路
-const CACHE = 'tlx-v1121-1';
+const CACHE = 'tlx-v1121-2';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

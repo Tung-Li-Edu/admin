@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>東立 115-2 學費單產生器</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;700;900&family=Tinos:wght@400;700&display=swap">
+<style>
+  :root{--ink:#1d2433;--muted:#6b7280;--line:#e5e7eb;--bg:#f6f4ef;--card:#fff;--brand:#1f4e79;--soft:#e8eff7;--accent:#c2410c}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+  header{background:var(--brand);color:#fff;padding:14px 20px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  header h1{font-size:19px;margin:0}
+  header span{opacity:.8;font-size:13px}
+  .wrap{display:grid;grid-template-columns:minmax(360px,480px) 1fr;gap:20px;padding:20px;max-width:1500px;margin:0 auto}
+  @media (max-width:960px){.wrap{grid-template-columns:1fr;padding:12px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--brand)}
+  label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+  input[type=text],input[type=number],select,textarea{width:100%;padding:8px 9px;border:1px solid #d1d5db;border-radius:7px;font:inherit;font-size:16px;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:2px solid #93c5fd;border-color:#60a5fa}
+  input:disabled{background:#f3f4f6;color:#9ca3af}
+  .row{display:flex;gap:8px;align-items:flex-end}
+  .row>*{flex:1;min-width:0}
+  .chk{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .chk input{width:18px;height:18px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px;line-height:1.25;text-align:left;color:inherit}
+  .chip small{color:var(--muted);display:block;font-size:11.5px}
+  .chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .chip.on small{color:#dbe7f3}
+  .item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px;background:#fafafa}
+  .item .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px;color:var(--muted)}
+  .item .top b{color:var(--ink);font-size:14px}
+  .item .fee{font-weight:700;color:var(--ink);font-size:14px}
+  .item .row{margin-top:6px}
+  .x{border:none;background:none;color:#9ca3af;font-size:18px;cursor:pointer;padding:0 2px;line-height:1}
+  .x:hover{color:var(--accent)}
+  .empty{color:var(--muted);font-size:13px;padding:6px 0}
+  .sum div{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
+  .sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700;font-size:18px;color:var(--accent)}
+  .warn{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  button.b{border:none;border-radius:8px;padding:10px 15px;font:inherit;font-weight:600;cursor:pointer}
+  .b.p{background:var(--brand);color:#fff}.b.s{background:var(--soft);color:var(--brand)}.b.g{background:#f3f4f6;color:#374151}
+  .b.sm{padding:7px 12px;font-size:13px}
+  .b:disabled{opacity:.5;cursor:not-allowed}
+  .preview{position:sticky;top:12px;align-self:start}
+  #slipImg{width:100%;height:auto;display:block;border:1px solid #e5e7eb;background:#fff;-webkit-touch-callout:default}
+  #msg{font-size:13px;margin-top:8px;min-height:18px}
+  .mt{margin-top:10px}
+</style>
+</head>
+<body>
+<header><h1>東立文理補習班｜學費單產生器</h1><span>115-2（資料來源：雲端 115-2 各班課表 01～13）</span></header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>① 學生</h2>
+      <div class="row">
+        <div style="flex:2"><label class="f" for="name">學生姓名</label><input type="text" id="name" placeholder="例：楊筳甯"></div>
+        <div style="flex:.7"><label class="f" for="year">年份</label><input type="text" id="year" value="116"></div>
+      </div>
+      <div class="mt"><label class="chk"><input type="checkbox" id="old"> 舊生（折 1,000）</label></div>
+    </div>
+
+    <div class="card">
+      <h2>② 選課（可跨班）</h2>
+      <label class="f" for="cls">班別</label>
+      <select id="cls"></select>
+      <div class="chips" id="chips"></div>
+      <div class="hint mt">月份、時間、堂數都可以改；費用 = 每堂單價 × 堂數，費用也可直接改。</div>
+      <div id="items"></div>
+      <div class="mt"><button class="b s sm" id="addCustom">＋ 自訂項目（例：社會科複習）</button></div>
+    </div>
+
+    <div class="card">
+      <h2>③ 折扣</h2>
+      <label class="chk"><input type="checkbox" id="early" checked> 於 115/12/13 前完成付款（享多科優惠）</label>
+      <div class="row mt">
+        <div><label class="f" for="multi">多科折扣</label><input type="number" id="multi" min="0" step="100"></div>
+        <div><label class="f" for="oldAmt">舊生折扣</label><input type="number" id="oldAmt" min="0" step="100"></div>
+      </div>
+      <div class="hint" id="multiHint"></div>
+      <div id="multiWarn"></div>
+      <div class="row mt">
+        <div><label class="f" for="adj">其他調整（減免填負數）</label><input type="number" id="adj" step="100" placeholder="0"></div>
+        <div><label class="f" for="adjNote">調整名稱</label><input type="text" id="adjNote" placeholder="例：手足優惠"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>④ 備註與金額</h2>
+      <label class="f" for="note">下方空白處的文字（選填）</label>
+      <textarea id="note" rows="2" placeholder="例：請於 12/13 前完成匯款"></textarea>
+      <div class="mt"><label class="chk"><input type="checkbox" id="showDeadline"> 印出「多科優惠須於 115/12/13 前付款」提醒</label></div>
+      <div class="mt"><label class="chk"><input type="checkbox" id="showNotes"> 附上停課公告（只列所選月份、科目內的）</label></div>
+      <div class="sum mt" id="sum"></div>
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="card">
+      <div class="btns">
+        <button class="b p" id="dl">下載圖片</button>
+        <button class="b s" id="cp">複製圖片</button>
+        <button class="b g" id="reset">下一位（清除）</button>
+      </div>
+      <div id="msg"></div>
+      <div class="hint" style="margin-bottom:8px">手機可長按圖片儲存；電腦可在圖片上按右鍵另存。</div>
+      <img id="slipImg" alt="學費單預覽">
+    </div>
+  </div>
+</div>
+<canvas id="cv" style="display:none"></canvas>
+
+<script>
+/* ===== 115-2 課程資料（來自雲端各班課表）
+   科目欄位：[科目, 學費, 堂數, 學費單上的課程名稱, 上課時間] ===== */
+const PAY={bank:"台新銀行",branch:"敦南分行",code:"812",no:"28881016022436",acct:"姜信安"};
+const CLASSES=[
+ {id:"01",name:"小五菁英班",start:"1/2",end:"6/26",off:[["1/30","2/6"],["4/3","4/3"]],tier:[1500,5000],
+  notes:["1/30～2/6 春節假期停課","4/3 清明連假停課","1/2 數學停課乙次","5/15 國文停課乙次"],
+  subs:[["數學",22000,22,"小五數學","週六 9:00～11:30",null,null,["1/2"]],["國文",22000,22,"小五國文","週六 13:00～15:30",null,null,["5/15"]],["英檢初級班",18400,23,"小五英檢","週六 16:00～18:00"]]},
+ {id:"02",name:"小六升私中菁英班",start:"1/2",end:"6/26",off:[["1/30","2/6"],["4/3","4/3"],["3/6","3/6"],["3/13","3/13"]],tier:[1500,5000],
+  notes:["1/30～2/6 春節假期停課","4/3 清明連假停課","3/6、3/13 升私中考試週停課","5/15 國文停課乙次"],
+  subs:[["數學",21000,21,"小六數學","週六 9:00～11:30"],["國文",20000,20,"小六國文","週六 13:00～15:30",null,null,["5/15"]],["英檢初級班",16800,21,"小六英檢","週六 16:00～18:00"]]},
+ {id:"03",name:"薇閣七年級菁英班",start:"1/2",end:"6/26",off:[["1/30","2/6"],["4/3","4/3"]],tier:[2000,6000],
+  notes:["1/30～2/6 春節假期停課","4/3 清明連假停課","6/5 國文停課乙次"],
+  subs:[["數學",27600,23,"薇七數學","週六 13:00～16:00"],["國文",22000,22,"薇七國文","週六 16:00～18:30",null,null,["6/5"]],["生物",23000,23,"薇七生物","週六 19:00～21:30"]]},
+ {id:"04",name:"薇閣八年級菁英班",start:"1/2",end:"6/27",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,6000],
+  notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
+  subs:[["數學",27600,23,"薇八數學","週日 13:00～16:00"],["理化",27600,23,"薇八理化","週日 9:00～12:00"],["國文",22000,22,"薇八國文","週六 13:00～15:30"]]},
+ {id:"05",name:"薇閣九年級直升班",start:"1/23",end:"6/13",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,6000],
+  notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
+  subs:[["數學",25200,18,"薇九數學","週日 13:30～16:30"],["物理",21600,18,"薇九物理","週六 15:30～18:00"],["化學",21600,18,"薇九化學","週六 13:00～15:30"]]},
+ {id:"06",name:"會考衝刺菁英班",start:"1/23",end:"5/9",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,4500],
+  notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
+  subs:[["數學",15600,13,"會考數學","週日 9:00～12:00"],["自然",15600,13,"會考自然","週日 13:00～16:00"],["社會",15600,13,"會考社會","週六 18:30～21:30"],["國文",15600,13,"會考國文","週六 15:30～18:00"],["英文",15600,13,"會考英文","週六 13:00～15:30"]]},
+ {id:"07",name:"薇閣高一菁英班",start:"1/2",end:"6/27",off:[["1/30","2/11"],["4/3","4/4"]],tier:[2000,6000],
+  notes:["1/30～2/11 春節假期停課","4/3～4/4 清明連假停課","1/2～1/16 國文上課時間為 18:30～21:00"],
+  subs:[["數學",32200,23,"薇高一數學","週日 9:00～12:00"],["物理",23000,23,"薇高一物理","週日 15:00～17:00"],["化學",23000,23,"薇高一化學","週日 13:00～15:00"],["英文",25200,21,"薇高一英文","週四 19:00～21:30"],["國文",27600,23,"薇高一國文","週六 19:00～21:30"]]},
+ {id:"08",name:"薇閣高二菁英班",start:"1/2",end:"6/26",off:[["1/30","2/6"],["4/3","4/3"]],tier:[2000,6000],
+  notes:["1/30～2/6 春節假期停課","4/3 清明連假停課","1/2 物理停課乙次"],
+  subs:[["數學",32200,23,"薇高二數學","週六 9:00～12:00"],["物理",26400,22,"薇高二物理","週六 13:00～15:30",null,null,["1/2"]],["化學",27600,23,"薇高二化學","週六 15:30～18:00"]]},
+ {id:"09",name:"東山九年級菁英班",start:"1/2",end:"5/9",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,4500],
+  notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
+  subs:[["東山九數",19200,16,"東山九數","週六 18:30～21:30"],["會考英文",15600,13,"會考英文","週六 13:00～15:30","1/23"],["會考國文",15600,13,"會考國文","週六 15:30～18:00","1/23"],["會考自然",15600,13,"會考自然","週日 13:00～16:00","1/23"]]},
+ {id:"10",name:"私中九年級菁英班",start:"1/5",end:"5/11",off:[["1/30","2/9"],["4/3","4/4"]],tier:[2000,4500],
+  notes:["會考班課程（數學、社會、國文、英文）於 1/23 才開始上課","段考後理化課程停課乙次","1/30～2/9 春節假期停課","4/3～4/4 清明連假停課"],
+  subs:[["私中九數",3600,3,"私中九數","週三 18:00～21:00",null,"1/20"],["私中九理",19200,16,"私中九理","週二 18:00～21:00"],["會考社會",15600,13,"會考社會","週六 18:30～21:30","1/23"],["會考英文",15600,13,"會考英文","週六 13:00～15:30","1/23"],["會考國文",15600,13,"會考國文","週六 15:30～18:00","1/23"],["會考數學",15600,13,"會考數學","週日 9:00～12:00","1/23"]]},
+ {id:"11",name:"公立七年級菁英班",start:"1/2",end:"6/26",off:[["1/30","2/9"],["4/3","4/6"]],tier:[2000,6000],
+  notes:["段考後數學課程停課乙次","1/30～2/9 春節假期停課","4/3～4/6 清明連假停課","6/5 國文停課乙次"],
+  subs:[["數學",24000,20,"公七數學","週二 18:00～21:00"],["國文",22000,22,"公七國文","週六 16:00～18:30",null,null,["6/5"]],["生物",23000,23,"公七生物","週六 19:00～21:30"]]},
+ {id:"12",name:"公立八年級菁英班",start:"1/2",end:"6/26",off:[["1/30","2/11"],["4/3","4/3"]],tier:[2000,6000],
+  notes:["段考後數學、理化課程停課乙次","1/30～2/11 春節假期停課","4/3 清明連假停課"],
+  subs:[["數學",25200,21,"公八數學","週三 18:00～21:00"],["理化",25200,21,"公八理化","週四 18:00～21:00"],["國文",22000,22,"公八國文","週六 13:00～15:30"],["英文",23000,23,"公八英文","週六 19:00～21:30"]]},
+ {id:"13",name:"公立高一菁英班",start:"1/3",end:"6/27",off:[["1/31","2/9"],["4/4","4/4"]],tier:[2000],
+  notes:["段考後數學、英文課程停課乙次","1/31～2/9 春節假期停課","4/4 清明連假停課"],
+  subs:[["數學",29400,21,"公高一數學","週二 18:30～21:30"],["英文",25200,21,"公高一英文","週日 9:30～12:00"]]},
+];
+const OLD_PER=1000;
+
+/* ===== 狀態 ===== */
+// items: {kind:"course",cid,si,label,month,time,count,fee,feeEdited} | {kind:"custom",label,month,time,countText,fee}
+let items=[];
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const byId=cid=>CLASSES.find(c=>c.id===cid);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rate=it=>{const s=byId(it.cid).subs[it.si];return s[1]/s[2];};
+const courses=()=>items.filter(i=>i.kind==="course");
+
+function initSelect(){
+  $("cls").innerHTML=CLASSES.map(c=>`<option value="${c.id}">${c.id}　${c.name}</option>`).join("");
+  $("cls").onchange=renderChips;
+}
+function renderChips(){
+  const c=byId($("cls").value);
+  $("chips").innerHTML=c.subs.map((s,i)=>{
+    const on=items.some(x=>x.kind==="course"&&x.cid===c.id&&x.si===i);
+    return `<button class="chip ${on?"on":""}" data-i="${i}">${s[0]}<small>${s[4]}｜$${fmt(s[1])}／${s[2]}堂</small></button>`;
+  }).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>toggle(c.id,+b.dataset.i));
+}
+function toggle(cid,si){
+  const k=items.findIndex(x=>x.kind==="course"&&x.cid===cid&&x.si===si);
+  if(k>=0) items.splice(k,1);
+  else{
+    const c=byId(cid),s=c.subs[si];
+    items.push({kind:"course",cid,si,label:s[3],month:`${s[5]||c.start} ～ ${s[6]||c.end}`,time:s[4],count:s[2],fee:s[1],feeEdited:false});
+  }
+  renderChips();renderItems();update();
+}
+function itemHint(it){
+  const u=unknownOff(it);const c=byId(it.cid),s=c.subs[it.si];
+  const isFull=(it.month||"").replace(/\s|～|~/g,"")===`${s[5]||c.start}${s[6]||c.end}`;
+  let h=it.countAuto===false?"堂數為手動輸入。":"堂數依月份自動計算（已扣除課表上的停課日）。";
+  if(u>0&&!isFull) h+=`<br><span style="color:#9a3412">⚠ 此科全學期另有 ${u} 次停課未標明日期（例如段考後停課），自動算出的堂數可能多算，請確認。</span>`;
+  return h;
+}
+function renderItems(){
+  if(!items.length){$("items").innerHTML='<div class="empty mt">尚未選擇科目</div>';return;}
+  $("items").innerHTML=items.map((it,k)=>{
+    if(it.kind==="course"){
+      const c=byId(it.cid),s=c.subs[it.si];
+      return `<div class="item"><div class="top"><span><b>${esc(s[0])}</b>　${esc(c.name)}（全期 ${s[2]} 堂，每堂 $${fmt(rate(it))}）</span><button class="x" data-del="${k}" title="移除">×</button></div>
+       <div class="row"><div style="flex:1.2"><label class="f">課程名稱</label><input type="text" data-k="${k}" data-f="label" value="${esc(it.label)}"></div>
+        <div style="flex:1.3"><label class="f">月份</label><input type="text" data-k="${k}" data-f="month" value="${esc(it.month)}"></div></div>
+       <div class="row"><div style="flex:1.6"><label class="f">時間</label><input type="text" data-k="${k}" data-f="time" value="${esc(it.time)}"></div>
+        <div style="flex:.6"><label class="f">堂數</label><input type="number" min="0" data-k="${k}" data-f="count" value="${it.count}"></div>
+        <div style="flex:.9"><label class="f">費用</label><input type="number" min="0" step="100" data-k="${k}" data-f="fee" value="${it.fee}"></div></div>
+       <div class="hint" data-hint="${k}">${itemHint(it)}</div></div>`;
+    }
+    return `<div class="item"><div class="top"><span><b>自訂項目</b>（不計入多科科數）</span><button class="x" data-del="${k}" title="移除">×</button></div>
+       <div class="row"><div style="flex:1.2"><label class="f">課程名稱</label><input type="text" data-k="${k}" data-f="label" value="${esc(it.label)}" placeholder="例：社會科複習"></div>
+        <div style="flex:1.3"><label class="f">月份</label><input type="text" data-k="${k}" data-f="month" value="${esc(it.month)}" placeholder="例：11/5、11/12"></div></div>
+       <div class="row"><div style="flex:1.6"><label class="f">時間（選填）</label><input type="text" data-k="${k}" data-f="time" value="${esc(it.time)}"></div>
+        <div style="flex:.6"><label class="f">堂數（選填）</label><input type="text" data-k="${k}" data-f="countText" value="${esc(it.countText)}"></div>
+        <div style="flex:.9"><label class="f">費用</label><input type="number" min="0" step="100" data-k="${k}" data-f="fee" value="${it.fee}"></div></div></div>`;
+  }).join("");
+  $("items").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{items.splice(+b.dataset.del,1);renderChips();renderItems();update();});
+  $("items").querySelectorAll("input[data-k]").forEach(inp=>inp.oninput=()=>{
+    const it=items[+inp.dataset.k],f=inp.dataset.f;
+    if(f==="count"){it.count=Math.max(0,+inp.value||0);it.countAuto=false;const hn=$("items").querySelector(`[data-hint="${inp.dataset.k}"]`);if(hn)hn.innerHTML=itemHint(it);
+      if(!it.feeEdited){it.fee=Math.round(rate(it)*it.count);const fe=$("items").querySelector(`input[data-k="${inp.dataset.k}"][data-f="fee"]`);if(fe)fe.value=it.fee;}}
+    else if(f==="fee"){it.fee=+inp.value||0;if(it.kind==="course")it.feeEdited=true;}
+    else if(it.kind==="course"&&(f==="month"||f==="time")){
+      it[f]=inp.value;
+      const isFull=(it.month||"").replace(/\s|～|~/g,"")===`${byId(it.cid).subs[it.si][5]||byId(it.cid).start}${byId(it.cid).subs[it.si][6]||byId(it.cid).end}`;
+      const n=isFull?byId(it.cid).subs[it.si][2]:countLessons(it,it.month);
+      if(n!=null){it.count=n;it.countAuto=true;it.feeEdited=false;it.fee=Math.round(rate(it)*n);
+        const ce=$("items").querySelector(`input[data-k="${inp.dataset.k}"][data-f="count"]`);if(ce)ce.value=n;
+        const fe=$("items").querySelector(`input[data-k="${inp.dataset.k}"][data-f="fee"]`);if(fe)fe.value=it.fee;}
+      const hn=$("items").querySelector(`[data-hint="${inp.dataset.k}"]`);if(hn)hn.innerHTML=itemHint(it);
+    }
+    else it[f]=inp.value;
+    update();
+  });
+}
+$("addCustom").onclick=()=>{items.push({kind:"custom",label:"",month:"",time:"",countText:"",fee:0});renderItems();update();};
+
+
+/* ===== 依月份自動算堂數 ===== */
+const WDMAP={"日":0,"一":1,"二":2,"三":3,"四":4,"五":5,"六":6};
+function pd(str){const m=String(str).trim().match(/^(\d{1,2})\s*\/\s*(\d{1,2})$/);if(!m)return null;const mo=+m[1],dd=+m[2];if(mo<1||mo>12||dd<1||dd>31)return null;return new Date(mo>=7?2026:2027,mo-1,dd);}
+function weekdayOf(t){const m=String(t).match(/[週星期]+\s*([日一二三四五六])/);return m?WDMAP[m[1]]:null;}
+function offDates(it){const c=byId(it.cid),s=c.subs[it.si];return {ranges:(c.off||[]).map(r=>[pd(r[0]),pd(r[1])]),days:(s[7]||[]).map(pd).filter(Boolean)};}
+function countLessons(it,monthStr){
+  const parts=String(monthStr).replace(/～|〜|~|－|-|到|至/g,"~").split("~").map(x=>x.trim()).filter(Boolean);
+  if(parts.length!==2){ // 例：11/5、11/12 → 直接算日期個數
+    const list=String(monthStr).split(/[、,，\s]+/).map(pd).filter(Boolean);return list.length?list.length:null;}
+  const a=pd(parts[0]),b=pd(parts[1]),w=weekdayOf(it.time);
+  if(!a||!b||w==null||b<a) return null;
+  const off=offDates(it);let n=0;
+  for(let x=new Date(a);x<=b;x.setDate(x.getDate()+1)){
+    if(x.getDay()!==w) continue;
+    if(off.ranges.some(r=>r[0]&&r[1]&&x>=r[0]&&x<=r[1])) continue;
+    if(off.days.some(d=>d.getTime()===x.getTime())) continue;
+    n++;
+  }
+  return n;
+}
+// 全學期算出的堂數 − 課表堂數 = 課表沒寫日期的停課次數（例如段考後停課）
+function unknownOff(it){const c=byId(it.cid),s=c.subs[it.si];const full=countLessons({...it,time:s[4]},`${s[5]||c.start}~${s[6]||c.end}`);return full==null?0:Math.max(0,full-s[2]);}
+
+/* ===== 停課公告：只留所選月份、所選科目有關的 ===== */
+const SUBJ_KW=["數學","國文","英文","理化","生物","物理","化學","自然","社會"];
+function subjHit(kw,it){const s=byId(it.cid).subs[it.si];return (s[0]+"|"+s[3]).includes(kw)||(kw==="數學"&&/數$/.test(s[0]))||(kw==="理化"&&/理$/.test(s[0]));}
+function itemSpans(it){
+  const parts=String(it.month).replace(/～|〜|~|－|-|到|至/g,"~").split("~").map(x=>x.trim()).filter(Boolean);
+  if(parts.length===2){const a=pd(parts[0]),b=pd(parts[1]);return a&&b&&a<=b?[[a,b]]:null;}
+  const l=String(it.month).split(/[、,，\s]+/).map(pd).filter(Boolean);return l.length?l.map(d=>[d,d]):null;}
+function noteSpans(t){const out=[],re=/(\d{1,2}\/\d{1,2})(?:\s*[～~]\s*(\d{1,2}\/\d{1,2}))?/g;let m;
+  while((m=re.exec(t))){const a=pd(m[1]),b=m[2]?pd(m[2]):a;if(a&&b)out.push([a,b]);}return out;}
+function relevantNotes(cid){
+  const its=courses().filter(x=>x.cid===cid);
+  return byId(cid).notes.filter(t=>{
+    const kws=SUBJ_KW.filter(k=>t.includes(k)),ns=noteSpans(t);
+    return its.some(it=>{
+      if(kws.length&&!kws.some(k=>subjHit(k,it))) return false; // 公告指定的科目沒選
+      if(!ns.length) return true;                              // 沒寫日期（如段考後停課）→ 保留
+      const sp=itemSpans(it); if(!sp) return true;
+      return ns.some(n=>sp.some(s=>n[0]<=s[1]&&n[1]>=s[0]));   // 停課日落在所選月份內
+    });
+  });
+}
+
+/* ===== 計算 ===== */
+function autoMulti(n){
+  if(n<2) return {v:0,txt:""};
+  if(n>=4) return {v:null,txt:`報名 ${n} 科：請手動輸入多科折扣`};
+  const cids=[...new Set(courses().map(x=>x.cid))];
+  let best=null,from=null;
+  cids.forEach(cid=>{const t=byId(cid).tier[n-2];if(t!=null&&(best==null||t>best)){best=t;from=byId(cid).name;}});
+  if(best==null) return {v:null,txt:`所選班別沒有 ${n} 科優惠，請手動輸入`};
+  return {v:best,txt:`自動：${n} 科折 ${fmt(best)}（依${from}${cids.length>1?"，跨班取較高者":""}）`};
+}
+function calc(){
+  const n=courses().length;
+  const subtotal=items.reduce((a,i)=>a+(+i.fee||0),0);
+  const early=$("early").checked;
+  const am=autoMulti(n);
+  const mv=$("multi").value.trim();
+  let multi,missing=false,hint=am.txt;
+  if(!early){multi=0;hint="未於 115/12/13 前付款，不適用多科優惠";}
+  else if(mv!==""){multi=Math.max(0,+mv||0);if(am.v!=null)hint+="　→ 目前使用手動金額";}
+  else if(am.v==null){multi=0;missing=n>=2;}
+  else multi=am.v;
+  const autoOld=$("old").checked?OLD_PER:0;
+  const ov=$("oldAmt").value.trim();
+  const old=ov!==""?Math.max(0,+ov||0):autoOld;
+  const adj=+($("adj").value||0)||0;
+  return {n,subtotal,multi,missing,hint,old,autoOld,adj,early,am,total:subtotal-multi-old+adj};
+}
+function update(){
+  const r=calc();
+  $("multi").disabled=!r.early;
+  $("multi").placeholder=!r.early?"不適用":(r.am.v!=null?`自動 ${r.am.v}`:(r.n>=2?"請輸入":"0"));
+  $("oldAmt").placeholder=`自動 ${r.autoOld}`;
+  $("multiHint").textContent=r.hint;
+  $("multiWarn").innerHTML=r.missing?'<div class="warn">⚠ 尚未輸入多科折扣，目前以 0 計算。</div>':"";
+  $("sum").innerHTML=`<div><span>費用小計</span><span>$${fmt(r.subtotal)}</span></div>
+    ${r.old?`<div><span>舊生折扣</span><span>−$${fmt(r.old)}</span></div>`:""}
+    ${r.multi?`<div><span>多科折扣</span><span>−$${fmt(r.multi)}</span></div>`:""}
+    ${r.adj?`<div><span>${esc($("adjNote").value||"其他調整")}</span><span>${r.adj<0?"−":"+"}$${fmt(Math.abs(r.adj))}</span></div>`:""}
+    <div class="tot"><span>總計</span><span>$${fmt(r.total)}</span></div>`;
+  scheduleDraw();
+}
+
+/* ===== 畫學費單（仿原本表格格式） ===== */
+const W=1600,M=22;
+const KAI='"DFKai-SB","BiauKai","標楷體","Kaiti TC","STKaiti","Noto Serif TC",serif';
+const TIMES='"Times New Roman","Tinos","Times",serif';
+const BOLD='"Noto Serif TC","PMingLiU","新細明體",serif';
+const COLS=[90,240,240,260,200,200]; // 項次 月份 課程 時間 堂數 費用；其餘給備註
+let drawTimer=null;
+function scheduleDraw(){clearTimeout(drawTimer);drawTimer=setTimeout(draw,60);}
+function wrap(ctx,text,maxW){const out=[];let cur="";for(const ch of text){if(ctx.measureText(cur+ch).width>maxW&&cur){out.push(cur);cur=ch;}else cur+=ch;}if(cur)out.push(cur);return out;}
+
+function draw(){
+  const r=calc();
+  const cv=$("cv"),ctx=cv.getContext("2d");
+  const RH=56, HEAD_H=46, TOP=70;
+  const xs=[M];COLS.forEach(w=>xs.push(xs[xs.length-1]+w));const xR=W-M; // xs[6]=備註起點
+  const rows=items.map((it,i)=>({no:String(i+1),month:it.month||"",label:it.label||"",time:it.time||"",
+      cnt:it.kind==="course"?(it.count?`（共計${it.count}堂課）`:""):(it.countText?`（${it.countText}）`:""),fee:"$"+fmt(+it.fee||0)}));
+  const itemRows=Math.max(6,rows.length);
+  const summary=[];
+  if(r.old) summary.push(["舊生折扣","$"+fmt(r.old)]);
+  if(r.multi||r.n>=2) summary.push(["多科折扣","$"+fmt(r.multi)]);
+  if(r.adj) summary.push([$("adjNote").value.trim()||"其他調整",(r.adj<0?"−$":"+$")+fmt(Math.abs(r.adj))]);
+  summary.push(["總計","$"+fmt(r.total)]);
+  // 下方空白區文字
+  const bottom=[];
+  const note=$("note").value.trim();
+  if(r.multi&&r.early&&$("showDeadline").checked) bottom.push("※ 多科優惠須於 115/12/13 前完成付款。");
+  if(note) note.split("\n").forEach(l=>bottom.push(l));
+  if($("showNotes").checked){
+    [...new Set(courses().map(x=>x.cid))].forEach(cid=>{const c=byId(cid);const ns=relevantNotes(cid);if(ns.length)bottom.push(`【${c.name}停課公告】`+ns.join("；"));});
+  }
+  ctx.font=`26px ${KAI}`;
+  const bLines=[];bottom.forEach(t=>wrap(ctx,t,xs[6]-xs[0]-40).forEach(l=>bLines.push(l)));
+  const BOT_H=Math.max(200,bLines.length*40+50);
+  const tableTop=TOP, rowsTop=tableTop+HEAD_H;
+  const nRows=itemRows+summary.length;
+  const bottomTop=rowsTop+nRows*RH;
+  const H=bottomTop+BOT_H+M;
+
+  cv.width=W;cv.height=H;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#000";ctx.textBaseline="middle";
+  const T=(t,x,y,font,align,bold)=>{
+    t=String(t).replace(/～/g,"~");
+    const m=font.match(/^(.*?\d+px)\s+(.*)$/);const pre=m[1],fam=m[2];
+    const runs=t.match(/[\x20-\x7E]+|[^\x20-\x7E]+/g)||[];
+    const fo=r=>/^[\x20-\x7E]/.test(r)?`${pre} ${TIMES}`:`${pre} ${fam}`;
+    let w=0;runs.forEach(r=>{ctx.font=fo(r);w+=ctx.measureText(r).width;});
+    let cx=align==="center"?x-w/2:align==="right"?x-w:x;
+    ctx.textAlign="left";
+    runs.forEach(r=>{ctx.font=fo(r);ctx.fillText(r,cx,y);if(bold){ctx.lineWidth=1.2;ctx.strokeText(r,cx,y);ctx.lineWidth=1.6;}cx+=ctx.measureText(r).width;});
+    return w;
+  };
+  const MW=(t,font)=>{t=String(t).replace(/～/g,"~");const m=font.match(/^(.*?\d+px)\s+(.*)$/);let w=0;(t.match(/[\x20-\x7E]+|[^\x20-\x7E]+/g)||[]).forEach(r=>{ctx.font=/^[\x20-\x7E]/.test(r)?`${m[1]} ${TIMES}`:`${m[1]} ${m[2]}`;w+=ctx.measureText(r).width;});return w;};
+  const L=(x1,y1,x2,y2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();};
+  ctx.strokeStyle="#000";ctx.lineWidth=1.6;
+
+  // 抬頭
+  T(($("year").value||"116")+" 年",M+4,36,`700 30px ${BOLD}`);
+  T("學生:",1180,36,`900 30px ${BOLD}`);
+  T($("name").value.trim(),1290,36,`700 32px ${KAI}`,"left",true);
+
+  // 外框與格線
+  ctx.strokeRect(M,tableTop,W-2*M,H-M-tableTop);
+  L(M,rowsTop,xR,rowsTop);
+  for(let i=1;i<=nRows;i++) L(M,rowsTop+i*RH,xs[6],rowsTop+i*RH);
+  for(let c=1;c<=6;c++) L(xs[c],tableTop,xs[c],c===6?H-M:bottomTop);
+
+  // 表頭
+  const hy=tableTop+HEAD_H/2;
+  T("項次",(xs[0]+xs[1])/2,hy,`900 24px ${BOLD}`,"center");
+  T("月份",(xs[1]+xs[2])/2,hy,`900 24px ${BOLD}`,"center");
+  T("課程",(xs[2]+xs[3])/2,hy,`900 24px ${BOLD}`,"center");
+  T("費用",(xs[5]+xs[6])/2,hy,`900 24px ${BOLD}`,"center");
+  T("備註",(xs[6]+xR)/2,hy,`900 24px ${BOLD}`,"center");
+
+  // 項目
+  const fit=(t,maxW,size)=>{let s=size;while(MW(t,`${s}px ${KAI}`)>maxW&&s>14)s--;return `${s}px ${KAI}`;};
+  rows.forEach((rw,i)=>{
+    const y=rowsTop+i*RH+RH/2;
+    T(rw.no,(xs[0]+xs[1])/2,y,`26px ${KAI}`,"center");
+    T(rw.month,(xs[1]+xs[2])/2,y,fit(rw.month,COLS[1]-16,26),"center");
+    T(rw.label,(xs[2]+xs[3])/2,y,fit(rw.label,COLS[2]-16,27),"center");
+    T(rw.time,(xs[3]+xs[4])/2,y,fit(rw.time,COLS[3]-16,26),"center");
+    T(rw.cnt,(xs[4]+xs[5])/2,y,fit(rw.cnt,COLS[4]-12,25),"center");
+    T(rw.fee,(xs[5]+xs[6])/2,y,`26px ${KAI}`,"center");
+  });
+  summary.forEach((s,i)=>{
+    const y=rowsTop+(itemRows+i)*RH+RH/2;
+    T(s[0],(xs[4]+xs[5])/2,y,fit(s[0],COLS[4]-12,27),"center");
+    const isTot=s[0]==="總計";
+    T(s[1],(xs[5]+xs[6])/2,y,`${isTot?"700 ":""}26px ${KAI}`,"center");
+  });
+
+  // 備註欄：匯款資訊
+  const rem=["匯款銀行:"+PAY.bank,PAY.branch,"銀行代號:"+PAY.code,"帳號:"+PAY.no,"戶名:"+PAY.acct,"","★轉帳後惠請提供","　帳號後5碼"];
+  rem.forEach((t,i)=>T(t,xs[6]+10,rowsTop+i*RH+RH/2,`26px ${KAI}`));
+
+  // 下方空白區
+  bLines.forEach((l,i)=>T(l,xs[0]+20,bottomTop+34+i*40,`26px ${KAI}`));
+
+  $("slipImg").src=cv.toDataURL("image/png");
+}
+
+/* ===== 匯出 ===== */
+function msg(t,ok){$("msg").textContent=t;$("msg").style.color=ok?"#15803d":"#9a3412";}
+function fileName(){return `學費單_${$("name").value.trim()||"學生"}.png`;}
+function getBlob(){return new Promise(res=>$("cv").toBlob(res,"image/png"));}
+$("dl").onclick=async()=>{
+  const blob=await getBlob();
+  const file=new File([blob],fileName(),{type:"image/png"});
+  // 手機（含行政專區 App）：叫出分享選單，可直接「儲存影像」或傳 LINE
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file]});msg("已開啟分享，可選「儲存影像」或傳到 LINE",true);return;}
+    catch(e){if(e&&e.name==="AbortError"){msg("已取消");return;}}
+  }
+  // 電腦：直接下載檔案
+  try{
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download=fileName();document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    msg("已下載 "+fileName(),true);
+  }catch(e){msg("這裡無法直接下載，請長按或右鍵圖片另存。");}
+};
+$("cp").onclick=async()=>{
+  try{const blob=await getBlob();await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);msg("已複製圖片，可直接貼到 LINE",true);}
+  catch(e){msg("這個瀏覽器不支援複製圖片，請改用下載或長按圖片儲存。");}
+};
+$("reset").onclick=()=>{
+  items=[];["name","multi","oldAmt","adj","adjNote","note"].forEach(id=>$(id).value="");
+  $("old").checked=false;$("early").checked=true;$("showNotes").checked=false;$("showDeadline").checked=false;
+  renderChips();renderItems();update();msg("");$("name").focus();
+};
+["name","year","multi","oldAmt","adj","adjNote","note"].forEach(id=>$(id).addEventListener("input",update));
+["old","early","showNotes","showDeadline"].forEach(id=>$(id).addEventListener("change",update));
+
+initSelect();renderChips();renderItems();update();
+if(document.fonts){Promise.all([document.fonts.load(`700 30px "Noto Serif TC"`),document.fonts.load(`900 30px "Noto Serif TC"`),document.fonts.load(`26px "Noto Serif TC"`),document.fonts.load(`26px "Tinos"`),document.fonts.load(`700 26px "Tinos"`)]).catch(()=>{}).then(()=>setTimeout(draw,50));}
+</script>
+</body>
+</html>
