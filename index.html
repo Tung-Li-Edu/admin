@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>東立行政專區</title>
+<meta name="theme-color" content="#b4532a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="東立行政專區">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#faf6f0;--card:#fff;--ink:#2b2420;--muted:#86786c;--line:#ece3d8;--accent:#b4532a;--accent-soft:#f6e6da;--bad:#b3261e;
+  --st:env(safe-area-inset-top);--sb:env(safe-area-inset-bottom)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+button,input{font:inherit}
+.hide{display:none!important}
+/* 登入 */
+#login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--st)) 20px calc(24px + var(--sb))}
+.box{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 22px}
+.logo{width:64px;height:64px;border-radius:16px;display:block;margin:0 auto 12px}
+h1{font-size:22px;margin:0;text-align:center;letter-spacing:.06em}
+.tag{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 22px}
+label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fffdfa;font-size:16px;outline:none}
+input:focus{border-color:var(--accent)}
+.primary{width:100%;margin-top:22px;padding:13px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.primary:disabled{opacity:.6}
+.msg{min-height:20px;margin-top:12px;font-size:14px;color:var(--bad);text-align:center}
+/* 首頁 */
+#home{min-height:100%;padding:calc(18px + var(--st)) 18px calc(24px + var(--sb));max-width:760px;margin:0 auto}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.top img{width:44px;height:44px;border-radius:11px}
+.top .t{flex:1;min-width:0}
+.top h2{margin:0;font-size:20px;letter-spacing:.04em}
+.top .who{font-size:13px;color:var(--muted);margin-top:2px}
+.ghost{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:9px;padding:7px 12px;font-size:13px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tile{position:relative;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 14px;cursor:pointer;min-height:118px;display:flex;flex-direction:column;gap:6px;color:inherit}
+.tile:active{transform:scale(.98)}
+.tile .ic{font-size:30px;line-height:1}
+.tile b{font-size:16px;margin-top:4px}
+.tile span{font-size:12px;color:var(--muted);line-height:1.45}
+.tile.soon{cursor:default;opacity:.55}
+.tile .badge{position:absolute;top:10px;right:10px;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.note{font-size:13px;color:var(--muted);text-align:center;margin-top:18px}
+.err{background:#fdecea;color:var(--bad);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+/* 系統畫面 */
+#view{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;z-index:5}
+.bar{display:flex;align-items:center;gap:6px;padding:calc(6px + var(--st)) 8px 6px;background:var(--card);border-bottom:1px solid var(--line)}
+.bar .ttl{flex:1;text-align:center;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{border:0;background:none;color:var(--accent);font-size:15px;padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.ib:active{background:var(--accent-soft)}
+#frames{flex:1;position:relative;padding-bottom:var(--sb)}
+#frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<section id="login" class="hide">
+  <form class="box" id="lf" autocomplete="on">
+    <img class="logo" src="icon-192.png" alt="">
+    <h1>東立行政專區</h1>
+    <div class="tag">內湖最有溫度的補習班</div>
+    <label for="nm">姓名</label>
+    <input id="nm" name="username" autocomplete="username" required>
+    <label for="pw">密碼</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" required>
+    <button class="primary" id="lb" type="submit">登入</button>
+    <div class="msg" id="lm"></div>
+  </form>
+</section>
+
+<section id="home" class="hide">
+  <div class="top">
+    <img src="icon-192.png" alt="">
+    <div class="t"><h2>東立行政專區</h2><div class="who" id="who"></div></div>
+    <button class="ghost" id="out">登出</button>
+  </div>
+  <div id="herr"></div>
+  <div class="grid" id="grid"></div>
+  <div class="note" id="ver"></div>
+</section>
+
+<section id="view" class="hide">
+  <div class="bar">
+    <button class="ib" id="back">‹ 首頁</button>
+    <div class="ttl" id="vt"></div>
+    <button class="ib" id="reload" title="重新整理">↻</button>
+    <button class="ib" id="ext" title="用瀏覽器開啟">↗</button>
+  </div>
+  <div id="frames"></div>
+</section>
+
+<script>
+/* ★ 部署後把「東立行政專區」Apps Script 的網址貼在這裡 ★ */
+const API = 'https://script.google.com/macros/s/AKfycbxX8f8imrca5hB61WuynJvPyCqcjWs9QLtFibfBYZDetVHoSRwLL-WfeH7C91YwEjg/exec';
+const SHELL_VERSION = 'v1121-1';
+
+const K_TOK = 'tlx_tok', K_DATA = 'tlx_data', TUTOR = 'tutor:';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} }
+};
+let DATA = null, current = null;
+const frames = {};
+
+async function call(body){
+  const r = await fetch(API, { method:'POST', body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('連線失敗（' + r.status + '）');
+  return r.json();
+}
+
+function show(id){ ['login','home','view'].forEach(x => $(x).classList.toggle('hide', x !== id && !(id === 'view' && x === 'home'))); }
+
+/* ---------- 登入 ---------- */
+$('lf').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('lb').disabled = true; $('lm').textContent = '';
+  try {
+    const r = await call({ a:'login', name: $('nm').value.trim(), pw: $('pw').value });
+    if (!r.ok) { $('lm').textContent = r.msg || '登入失敗'; return; }
+    ls.set(K_TOK, r.tok);
+    $('pw').value = '';
+    setData(r);
+  } catch(err) {
+    $('lm').textContent = '連不上伺服器，請確認網路後再試';
+  } finally { $('lb').disabled = false; }
+});
+
+$('out').addEventListener('click', async () => {
+  if (!confirm('確定要登出嗎？')) return;
+  const tok = ls.get(K_TOK);
+  ls.set(K_TOK, null); ls.set(K_DATA, null);
+  // 一併忘記家教系統在這台裝置記住的登入
+  try { Object.keys(localStorage).filter(k => k.indexOf(TUTOR) === 0).forEach(k => localStorage.removeItem(k)); } catch(e){}
+  Object.keys(frames).forEach(k => { frames[k].remove(); delete frames[k]; });
+  DATA = null; show('login');
+  if (tok) call({ a:'logout', tok }).catch(()=>{});
+});
+
+/* ---------- 首頁 ---------- */
+function setData(r){
+  DATA = { name:r.name, role:r.role, apps:r.apps || [], version:r.version };
+  ls.set(K_DATA, JSON.stringify(DATA));
+  render();
+  if ($('view').classList.contains('hide')) show('home');
+}
+
+function render(){
+  $('who').textContent = DATA.name + '・' + DATA.role;
+  $('grid').innerHTML = DATA.apps.map((a,i) => a.url
+    ? `<button class="tile" data-i="${i}"><div class="ic">${esc(a.icon)}</div><b>${esc(a.name)}</b><span>${esc(a.desc)}</span></button>`
+    : `<div class="tile soon"><div class="badge">即將上線</div><div class="ic">${esc(a.icon)}</div><b>${esc(a.name)}</b><span>${esc(a.desc)}</span></div>`
+  ).join('') || '<div class="note">目前沒有可用的系統</div>';
+  $('ver').textContent = 'App ' + SHELL_VERSION + (DATA.version ? '・伺服器 ' + DATA.version : '');
+}
+
+$('grid').addEventListener('click', e => {
+  const t = e.target.closest('.tile[data-i]');
+  if (t) openApp(DATA.apps[+t.dataset.i]);
+});
+
+/* ---------- 打開系統 ---------- */
+function openApp(a){
+  if (a.tab) { window.open(a.url, '_blank'); return; }
+  current = a;
+  $('vt').textContent = a.name;
+  Object.keys(frames).forEach(k => frames[k].classList.add('hide'));
+  let f = frames[a.url];
+  if (!f) {
+    f = document.createElement('iframe');
+    f.src = a.url;
+    f.setAttribute('allow', 'camera; microphone; clipboard-read; clipboard-write; fullscreen');
+    f.setAttribute('allowfullscreen', '');
+    frames[a.url] = f;
+    $('frames').appendChild(f);
+  }
+  f.classList.remove('hide');
+  $('view').classList.remove('hide');
+  history.pushState({ v:1 }, '');
+}
+function closeApp(){
+  $('view').classList.add('hide');
+  current = null;
+}
+$('back').addEventListener('click', () => { history.state && history.state.v ? history.back() : closeApp(); });
+window.addEventListener('popstate', closeApp);
+$('reload').addEventListener('click', () => { if (current && frames[current.url]) frames[current.url].src = current.url; });
+$('ext').addEventListener('click', () => { if (current) window.open(current.url, '_blank'); });
+
+/* ---------- 家教系統的登入記憶（家教頁面透過這裡存，iPhone 才記得住） ---------- */
+window.addEventListener('message', e => {
+  if (!/^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(e.origin) && e.origin !== 'https://script.google.com') return;
+  const d = e.data || {};
+  if (d.type === 'neihu-store-get') {
+    const items = {};
+    try { Object.keys(localStorage).forEach(k => { if (k.indexOf(TUTOR) === 0) items[k.slice(TUTOR.length)] = localStorage.getItem(k); }); } catch(err){}
+    e.source && e.source.postMessage({ type:'neihu-store-all', items }, e.origin);
+  } else if (d.type === 'neihu-store-set' && typeof d.key === 'string') {
+    ls.set(TUTOR + d.key, d.value == null ? null : String(d.value));
+  }
+});
+
+/* ---------- 啟動 ---------- */
+(async function start(){
+  const tok = ls.get(K_TOK);
+  if (!tok) { show('login'); return; }
+  try { DATA = JSON.parse(ls.get(K_DATA) || 'null'); } catch(e){}
+  if (DATA) { render(); show('home'); }   // 先用上次的清單，畫面馬上出來
+  try {
+    const r = await call({ a:'apps', tok });
+    if (r.ok) setData(r);
+    else { ls.set(K_TOK, null); ls.set(K_DATA, null); $('lm').textContent = r.msg || '請重新登入'; show('login'); }
+  } catch(err) {
+    if (DATA) $('herr').innerHTML = '<div class="err">目前連不上伺服器，顯示的是上次的清單</div>';
+    else { $('lm').textContent = '連不上伺服器，請確認網路後再試'; show('login'); }
+  }
+})();
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
