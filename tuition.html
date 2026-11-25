@@ -54,7 +54,7 @@
 </style>
 </head>
 <body>
-<header><h1>東立文理補習班｜學費單產生器</h1><span>115-2（資料來源：雲端 115-2 各班課表 01～13）</span></header>
+<header><h1>東立文理補習班｜學費單產生器</h1><span>115-2（資料來源：115-2 各班課表 01～13，11/25 更新）</span></header>
 
 <div class="wrap">
   <div>
@@ -79,7 +79,7 @@
 
     <div class="card">
       <h2>③ 折扣</h2>
-      <label class="chk"><input type="checkbox" id="early" checked> 於 115/12/13 前完成付款（享多科優惠）</label>
+      <label class="chk"><input type="checkbox" id="early" checked> 於 <span id="dlTxt">115/12/13</span> 前完成付款（享多科優惠）</label>
       <div class="row mt">
         <div><label class="f" for="multi">多科折扣</label><input type="number" id="multi" min="0" step="100"></div>
         <div><label class="f" for="oldAmt">舊生折扣</label><input type="number" id="oldAmt" min="0" step="100"></div>
@@ -96,7 +96,7 @@
       <h2>④ 備註與金額</h2>
       <label class="f" for="note">下方空白處的文字（選填）</label>
       <textarea id="note" rows="2" placeholder="例：請於 12/13 前完成匯款"></textarea>
-      <div class="mt"><label class="chk"><input type="checkbox" id="showDeadline"> 印出「多科優惠須於 115/12/13 前付款」提醒</label></div>
+      <div class="mt"><label class="chk"><input type="checkbox" id="showDeadline"> 印出「多科優惠須於 <span id="dlTxt2">115/12/13</span> 前付款」提醒</label></div>
       <div class="mt"><label class="chk"><input type="checkbox" id="showNotes"> 附上停課公告（只列所選月份、科目內的）</label></div>
       <div class="sum mt" id="sum"></div>
     </div>
@@ -118,8 +118,9 @@
 <canvas id="cv" style="display:none"></canvas>
 
 <script>
-/* ===== 115-2 課程資料（來自雲端各班課表）
-   科目欄位：[科目, 學費, 堂數, 學費單上的課程名稱, 上課時間] ===== */
+/* ===== 115-2 課程資料（來自各班課表）
+   科目欄位：[科目, 學費, 堂數, 學費單上的課程名稱, 上課時間, 開始日, 結束日, 單科停課日]
+   dl：多科優惠付款期限（沒寫 = 115/12/13） ===== */
 const PAY={bank:"台新銀行",branch:"敦南分行",code:"812",no:"28881016022436",acct:"姜信安"};
 const CLASSES=[
  {id:"01",name:"小五菁英班",start:"1/2",end:"6/26",off:[["1/30","2/6"],["4/3","4/3"]],tier:[1500,5000],
@@ -134,10 +135,10 @@ const CLASSES=[
  {id:"04",name:"薇閣八年級菁英班",start:"1/2",end:"6/27",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,6000],
   notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
   subs:[["數學",27600,23,"薇八數學","週日 13:00～16:00"],["理化",27600,23,"薇八理化","週日 9:00～12:00"],["國文",22000,22,"薇八國文","週六 13:00～15:30"]]},
- {id:"05",name:"薇閣九年級直升班",start:"1/23",end:"6/13",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,6000],
+ {id:"05",name:"薇閣九年級直升班",start:"1/23",end:"6/13",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,6000],dl:"115/12/27",
   notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
-  subs:[["數學",25200,18,"薇九數學","週日 13:30～16:30"],["物理",21600,18,"薇九物理","週六 15:30～18:00"],["化學",21600,18,"薇九化學","週六 13:00～15:30"]]},
- {id:"06",name:"會考衝刺菁英班",start:"1/23",end:"5/9",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,4500],
+  subs:[["數學",25200,18,"薇九數學","週日 13:00～16:00"],["物理",21600,18,"薇九物理","週六 15:30～18:00"],["化學",21600,18,"薇九化學","週六 13:00～15:30"],["國文",25200,18,"薇九國文","週日 9:00～12:00"]]},
+ {id:"06",name:"會考衝刺菁英班",start:"1/23",end:"5/9",off:[["1/30","2/7"],["4/3","4/4"]],tier:[2000,4500],dl:"115/12/27",
   notes:["1/30～2/7 春節假期停課","4/3～4/4 清明連假停課"],
   subs:[["數學",15600,13,"會考數學","週日 9:00～12:00"],["自然",15600,13,"會考自然","週日 13:00～16:00"],["社會",15600,13,"會考社會","週六 18:30～21:30"],["國文",15600,13,"會考國文","週六 15:30～18:00"],["英文",15600,13,"會考英文","週六 13:00～15:30"]]},
  {id:"07",name:"薇閣高一菁英班",start:"1/2",end:"6/27",off:[["1/30","2/11"],["4/3","4/4"]],tier:[2000,6000],
@@ -163,6 +164,7 @@ const CLASSES=[
   subs:[["數學",29400,21,"公高一數學","週二 18:30～21:30"],["英文",25200,21,"公高一英文","週日 9:30～12:00"]]},
 ];
 const OLD_PER=1000;
+const DL_DEFAULT="115/12/13";
 
 /* ===== 狀態 ===== */
 // items: {kind:"course",cid,si,label,month,time,count,fee,feeEdited} | {kind:"custom",label,month,time,countText,fee}
@@ -173,6 +175,8 @@ const byId=cid=>CLASSES.find(c=>c.id===cid);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const rate=it=>{const s=byId(it.cid).subs[it.si];return s[1]/s[2];};
 const courses=()=>items.filter(i=>i.kind==="course");
+// 多科優惠付款期限：各班不同（九直、會考衝刺是 115/12/27），跨班時取所選班別中最早的
+function deadline(){const ds=[...new Set(courses().map(i=>byId(i.cid).dl||DL_DEFAULT))].sort();return ds[0]||DL_DEFAULT;}
 
 function initSelect(){
   $("cls").innerHTML=CLASSES.map(c=>`<option value="${c.id}">${c.id}　${c.name}</option>`).join("");
@@ -306,7 +310,7 @@ function calc(){
   const am=autoMulti(n);
   const mv=$("multi").value.trim();
   let multi,missing=false,hint=am.txt;
-  if(!early){multi=0;hint="未於 115/12/13 前付款，不適用多科優惠";}
+  if(!early){multi=0;hint=`未於 ${deadline()} 前付款，不適用多科優惠`;}
   else if(mv!==""){multi=Math.max(0,+mv||0);if(am.v!=null)hint+="　→ 目前使用手動金額";}
   else if(am.v==null){multi=0;missing=n>=2;}
   else multi=am.v;
@@ -318,6 +322,7 @@ function calc(){
 }
 function update(){
   const r=calc();
+  $("dlTxt").textContent=deadline();$("dlTxt2").textContent=deadline();
   $("multi").disabled=!r.early;
   $("multi").placeholder=!r.early?"不適用":(r.am.v!=null?`自動 ${r.am.v}`:(r.n>=2?"請輸入":"0"));
   $("oldAmt").placeholder=`自動 ${r.autoOld}`;
@@ -357,7 +362,7 @@ function draw(){
   // 下方空白區文字
   const bottom=[];
   const note=$("note").value.trim();
-  if(r.multi&&r.early&&$("showDeadline").checked) bottom.push("※ 多科優惠須於 115/12/13 前完成付款。");
+  if(r.multi&&r.early&&$("showDeadline").checked) bottom.push(`※ 多科優惠須於 ${deadline()} 前完成付款。`);
   if(note) note.split("\n").forEach(l=>bottom.push(l));
   if($("showNotes").checked){
     [...new Set(courses().map(x=>x.cid))].forEach(cid=>{const c=byId(cid);const ns=relevantNotes(cid);if(ns.length)bottom.push(`【${c.name}停課公告】`+ns.join("；"));});
@@ -396,7 +401,7 @@ function draw(){
   // 外框與格線
   ctx.strokeRect(M,tableTop,W-2*M,H-M-tableTop);
   L(M,rowsTop,xR,rowsTop);
-  for(let i=1;i<=nRows;i++) L(M,rowsTop+i*RH,xs[6],rowsTop+i*RH);
+  for(let i=1;i<=nRows;i++){ if(i===nRows) L(M,rowsTop+i*RH,xs[6],rowsTop+i*RH); else L(M,rowsTop+i*RH,xs[6],rowsTop+i*RH); }
   for(let c=1;c<=6;c++) L(xs[c],tableTop,xs[c],c===6?H-M:bottomTop);
 
   // 表頭
@@ -439,21 +444,12 @@ function draw(){
 function msg(t,ok){$("msg").textContent=t;$("msg").style.color=ok?"#15803d":"#9a3412";}
 function fileName(){return `學費單_${$("name").value.trim()||"學生"}.png`;}
 function getBlob(){return new Promise(res=>$("cv").toBlob(res,"image/png"));}
+let downloads=null;
 $("dl").onclick=async()=>{
   const blob=await getBlob();
-  const file=new File([blob],fileName(),{type:"image/png"});
-  // 手機（含行政專區 App）：叫出分享選單，可直接「儲存影像」或傳 LINE
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file]});msg("已開啟分享，可選「儲存影像」或傳到 LINE",true);return;}
-    catch(e){if(e&&e.name==="AbortError"){msg("已取消");return;}}
-  }
-  // 電腦：直接下載檔案
-  try{
-    const url=URL.createObjectURL(blob),a=document.createElement("a");
-    a.href=url;a.download=fileName();document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),4000);
-    msg("已下載 "+fileName(),true);
-  }catch(e){msg("這裡無法直接下載，請長按或右鍵圖片另存。");}
+  if(!downloads){msg("這裡無法直接下載，請長按或右鍵圖片另存。");return;}
+  try{await downloads.save({filename:fileName(),data:blob});msg("已下載 "+fileName(),true);}
+  catch(e){msg(e&&e.code==="declined"?"已取消下載":"這裡無法直接下載，請長按或右鍵圖片另存。");}
 };
 $("cp").onclick=async()=>{
   try{const blob=await getBlob();await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);msg("已複製圖片，可直接貼到 LINE",true);}
@@ -469,6 +465,7 @@ $("reset").onclick=()=>{
 
 initSelect();renderChips();renderItems();update();
 if(document.fonts){Promise.all([document.fonts.load(`700 30px "Noto Serif TC"`),document.fonts.load(`900 30px "Noto Serif TC"`),document.fonts.load(`26px "Noto Serif TC"`),document.fonts.load(`26px "Tinos"`),document.fonts.load(`700 26px "Tinos"`)]).catch(()=>{}).then(()=>setTimeout(draw,50));}
+if(window.claude&&claude.use){claude.use("downloads").then(d=>{downloads=d;}).catch(()=>{});}
 </script>
 </body>
 </html>
